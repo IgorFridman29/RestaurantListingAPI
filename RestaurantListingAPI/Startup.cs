@@ -9,7 +9,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using RestaurantListingAPI.Data;
+using RestaurantListingAPI.DTO;
 using RestaurantListingAPI.IoC;
+using RestaurantListingAPI.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +48,12 @@ namespace RestaurantListingAPI
                 });
             });
 
-            services.AddControllers();
+            services.AddAutoMapper(typeof(MapperInitializer));
+
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+
+            services.AddControllers().AddNewtonsoftJson(
+                op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "RestaurantListingAPI", Version = "v1" });
