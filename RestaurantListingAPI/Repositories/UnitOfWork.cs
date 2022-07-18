@@ -22,11 +22,11 @@ namespace RestaurantListingAPI.Repositories
             _databaseContext = databaseContext;
         }
 
-        public void Dispose()
-        {
-            _databaseContext.Dispose();
-            GC.SuppressFinalize(this);
-        }
+        //public void Dispose()
+        //{
+        //    _databaseContext.Dispose();
+        //    GC.SuppressFinalize(this);
+        //}
 
         public async Task Save()
         {

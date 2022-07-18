@@ -28,6 +28,8 @@ namespace RestaurantListingAPI.Controllers
         }
 
         [HttpGet("GetAll")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetLocations()
         {
             try
@@ -46,6 +48,8 @@ namespace RestaurantListingAPI.Controllers
         }
 
         [HttpGet("GetAllOrdered")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetSortedLocations()
         {
             try
@@ -58,12 +62,14 @@ namespace RestaurantListingAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"ERROR IN METHOD {nameof(GetLocations)}");
+                _logger.LogError(ex, $"ERROR IN METHOD {nameof(GetSortedLocations)}");
                 return BadRequest(ex);
             }
         }
 
         [HttpGet("GetAllInclude")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetLocationsInclude()
         {
             try
@@ -76,7 +82,31 @@ namespace RestaurantListingAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"ERROR IN METHOD {nameof(GetLocations)}");
+                _logger.LogError(ex, $"ERROR IN METHOD {nameof(GetLocationsInclude)}");
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpGet("GetById/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> GetLocationById(int id)
+        {
+            try
+            {
+                _logger.LogDebug("[LocationsController:GetLocations] Started");
+                var locations = await _unitOfWork.Locations.Get(
+                    expression: q => q.Id == id,
+                    include: q => q.Include(loc => loc.Restaurant));
+
+                var mappedLocations = _mapper.Map<LocationDTO>(locations);
+                _logger.LogDebug("[LocationsController:GetLocations] Finished");
+                return Ok(mappedLocations);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"ERROR IN METHOD {nameof(GetLocationById)}");
                 return BadRequest(ex);
             }
         }
