@@ -12,6 +12,7 @@ using RestaurantListingAPI.Data;
 using RestaurantListingAPI.DTO;
 using RestaurantListingAPI.IoC;
 using RestaurantListingAPI.Repositories;
+using RestaurantListingAPI.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,6 +39,9 @@ namespace RestaurantListingAPI
             },
             ServiceLifetime.Singleton);
 
+            services.AddAuthentication();
+            services.AddIdentityConfiguration();
+
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
@@ -47,6 +51,7 @@ namespace RestaurantListingAPI
                     builder.AllowAnyHeader();
                 });
             });
+
 
             services.AddAutoMapper(typeof(MapperInitializer));
 
