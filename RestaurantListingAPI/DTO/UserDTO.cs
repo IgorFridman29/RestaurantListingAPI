@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace RestaurantListingAPI.DTO
 {
@@ -20,6 +22,8 @@ namespace RestaurantListingAPI.DTO
         public string Password { get; set; }
 
         public bool IsPaid { get; set; }
+
+        public ICollection<string> Roles { get; set; }
 
     }
 }

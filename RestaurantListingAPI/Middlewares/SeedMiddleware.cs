@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using RestaurantListingAPI.Data;
 using System;
 using System.Collections.Generic;
@@ -20,11 +21,41 @@ namespace RestaurantListingAPI
 
         public async Task Invoke(HttpContext httpContext, DatabaseContext dbContext)
         {
+            if (dbContext.Database.CanConnect() && !dbContext.Roles.Any())
+            {
+                await insertRollsDataAsync(dbContext);
+            }
+
             if (dbContext.Database.CanConnect() && !dbContext.Restaurants.Any())
             {
                 await InsertDataAsync(dbContext);
             }
             await _next(httpContext);
+        }
+
+        private async Task insertRollsDataAsync(DatabaseContext dbContext)
+        {
+            var roles = new List<IdentityRole>
+            {
+                new IdentityRole
+                {
+                    Name = "User",
+                    NormalizedName = "USER"
+                },
+                new IdentityRole
+                {
+                    Name = "Admin",
+                    NormalizedName = "ADMIN"
+                },
+                new IdentityRole
+                {
+                    Name = "Manager",
+                    NormalizedName = "MANAGER"
+                }
+            };
+
+            await dbContext.AddRangeAsync(roles);
+            await dbContext.SaveChangesAsync();
         }
 
         private async Task InsertDataAsync(DatabaseContext dbContext)

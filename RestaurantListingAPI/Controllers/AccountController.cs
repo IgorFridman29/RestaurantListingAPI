@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using RestaurantListingAPI.Data;
 using RestaurantListingAPI.DTO;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RestaurantListingAPI.Controllers
@@ -43,11 +44,13 @@ namespace RestaurantListingAPI.Controllers
                 user.UserName = registerUserDTO.Email;
                 user.PhoneNumber = registerUserDTO.MobileNumber;
 
-                IdentityResult result = await _userManager.CreateAsync(user, registerUserDTO.Password);
+                IdentityResult resultCreate = await _userManager.CreateAsync(user, registerUserDTO.Password);
 
-                if (!result.Succeeded)
+                IdentityResult resultRoles = await _userManager.AddToRolesAsync(user, registerUserDTO.Roles);
+
+                if (!resultCreate.Succeeded || !resultRoles.Succeeded)
                 {
-                    foreach (var error in result.Errors)
+                    foreach (var error in resultCreate.Errors.Concat(resultRoles.Errors))
                     {
                         ModelState.AddModelError(error.Code, error.Description);
                     }
