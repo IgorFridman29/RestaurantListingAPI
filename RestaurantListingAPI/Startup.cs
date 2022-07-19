@@ -33,7 +33,11 @@ namespace RestaurantListingAPI
             ServiceLifetime.Singleton);
 
             services.AddAuthentication();
+
             services.AddIdentityConfiguration();
+
+            // Authorization policies
+            services.AddAutorizationPolicies();
 
             services.AddJWTAuthentication(Configuration);
 
@@ -76,9 +80,13 @@ namespace RestaurantListingAPI
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "RestaurantListingAPI v1"));
             }
 
+            app.UseCustomeExceptionHandler();
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

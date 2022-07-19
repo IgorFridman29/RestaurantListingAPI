@@ -1,9 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using RestaurantListingAPI.Data;
+using RestaurantListingAPI.Models;
+using Serilog;
 using System.Text;
 
 namespace RestaurantListingAPI.Services
@@ -60,6 +65,43 @@ namespace RestaurantListingAPI.Services
                     ValidAudience = jwtSettings.GetSection("Audience").Value,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
                 };
+            });
+        }
+
+        public static void AddAutorizationPolicies(this IServiceCollection services)
+        {
+            services.AddAuthorization(op =>
+            {
+                op.AddPolicy("PayingOnly", policy => policy.RequireClaim("IsPaid", "True"));
+                op.AddPolicy("HasMobile", policy => policy.RequireClaim("mobilephone"));
+            });
+        }
+
+        public static void UseCustomeExceptionHandler(this IApplicationBuilder app)
+        {
+            app.UseExceptionHandler(error =>
+            {
+                error.Run(async context =>
+                {
+                    //context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    context.Response.ContentType = "application/json";
+
+                    //grab the feature of the actual error
+                    var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+                    if (contextFeature != null)
+                    {
+                        //write to serilog
+                        Log.Error($"Error {contextFeature.Error} occured!!!");
+
+                        //create an error message to display in browser
+                        Error error = new Error
+                        {
+                            StatusCode = context.Response.StatusCode,
+                            Message = "(Global)Internal Server Error. Please Try Again Later."
+                        };
+                        await context.Response.WriteAsync(error.ToString());
+                    }
+                });
             });
         }
     }

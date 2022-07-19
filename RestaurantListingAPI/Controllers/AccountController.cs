@@ -43,62 +43,45 @@ namespace RestaurantListingAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
+            if (!await _authManager.ValidateUser(loginUserDto))
             {
-                if (!await _authManager.ValidateUser(loginUserDto))
-                {
-                    return Unauthorized();
-                }
-                //before refreshing a token simplt return the token in the accepted method
-                //anonymous object new {sdsd= dsds}
-                return Accepted(new { Token = _authManager.CreateToken() });
+                return Unauthorized();
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something Went Wrong in the {nameof(Login)}");
-                return Problem($"Something Went Wrong in the {nameof(Login)}", statusCode: 500);
-            }
+            //before refreshing a token simplt return the token in the accepted method
+            //anonymous object new {sdsd= dsds}
+            return Accepted(new { Token = await _authManager.CreateToken() });
         }
 
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDTO registerUserDTO)
         {
-            try
+            _logger.LogDebug("[AccountController:Register] Start");
+            if (!ModelState.IsValid)
             {
-                _logger.LogDebug("[AccountController:Register] Start");
-                if(!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                ApiUser user = _mapper.Map<ApiUser>(registerUserDTO);
-                
-                user.UserName = registerUserDTO.Email;
-                user.PhoneNumber = registerUserDTO.MobileNumber;
-
-                IdentityResult resultCreate = await _userManager.CreateAsync(user, registerUserDTO.Password);
-
-                IdentityResult resultRoles = await _userManager.AddToRolesAsync(user, registerUserDTO.Roles);
-
-                if (!resultCreate.Succeeded || !resultRoles.Succeeded)
-                {
-                    foreach (var error in resultCreate.Errors.Concat(resultRoles.Errors))
-                    {
-                        ModelState.AddModelError(error.Code, error.Description);
-                    }
-                    return BadRequest(ModelState);
-                }
-
-                _logger.LogDebug("[AccountController:Register] Finished Succesfully");
-                return StatusCode(StatusCodes.Status201Created, "❤ User Created with love");
+                return BadRequest(ModelState);
             }
-            catch (Exception ex)
+
+            ApiUser user = _mapper.Map<ApiUser>(registerUserDTO);
+
+            user.UserName = registerUserDTO.Email;
+            user.PhoneNumber = registerUserDTO.MobileNumber;
+
+            IdentityResult resultCreate = await _userManager.CreateAsync(user, registerUserDTO.Password);
+
+            IdentityResult resultRoles = await _userManager.AddToRolesAsync(user, registerUserDTO.Roles);
+
+            if (!resultCreate.Succeeded || !resultRoles.Succeeded)
             {
-                _logger.LogError(ex, $"ERROR IN METHOD {nameof(Register)}");
-                return BadRequest(ex);
+                foreach (var error in resultCreate.Errors.Concat(resultRoles.Errors))
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
+                return BadRequest(ModelState);
             }
-            
+
+            _logger.LogDebug("[AccountController:Register] Finished Succesfully");
+            return StatusCode(StatusCodes.Status201Created, "❤ User Created with love");
         }
     }
 }

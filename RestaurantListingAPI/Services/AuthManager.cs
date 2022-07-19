@@ -35,17 +35,18 @@ namespace RestaurantListingAPI.Services
             return (_user != null && validPassword);
         }
 
-        public string CreateToken()
+        public async Task<string> CreateToken()
         {
             // get the key and algorithm
             var signingCredentials = GetSigningCredentials();
             // get the user claims to be added to the token body
-            var claims = GetClaims();
+            var claims = await GetClaims();
 
             var token = GenerateTokenOptions(signingCredentials, claims);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
         private SigningCredentials GetSigningCredentials()
         {
             //to create the token we need to add the ket and to decide on hashing algorithm
@@ -56,7 +57,7 @@ namespace RestaurantListingAPI.Services
             //generate the token
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
         }
-        private List<Claim> GetClaims()
+        private async Task<List<Claim>> GetClaims()
         {
             //The user claim to be someone and have priviliges to do something
             /*
@@ -73,8 +74,16 @@ namespace RestaurantListingAPI.Services
                  new Claim("IsPaid", _user.IsPaid.ToString())
 
              };
+            var roles = await _userManager.GetRolesAsync(_user);
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
+            }
+
             return claims;
         }
+
         private JwtSecurityToken GenerateTokenOptions(SigningCredentials signingCredentials, List<Claim> claims)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
