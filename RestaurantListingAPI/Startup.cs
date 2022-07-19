@@ -1,22 +1,15 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using RestaurantListingAPI.Data;
 using RestaurantListingAPI.DTO;
 using RestaurantListingAPI.IoC;
 using RestaurantListingAPI.Repositories;
 using RestaurantListingAPI.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace RestaurantListingAPI
 {
@@ -42,6 +35,8 @@ namespace RestaurantListingAPI
             services.AddAuthentication();
             services.AddIdentityConfiguration();
 
+            services.AddJWTAuthentication(Configuration);
+
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
@@ -56,6 +51,7 @@ namespace RestaurantListingAPI
             services.AddAutoMapper(typeof(MapperInitializer));
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IAuthManager, AuthManager>();
 
             services.AddControllers().AddNewtonsoftJson(
                 op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
