@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using RestaurantListingAPI.Data;
 using RestaurantListingAPI.DTO;
+using RestaurantListingAPI.Models;
 using RestaurantListingAPI.Repositories;
 using System;
 using System.Collections.Generic;
@@ -33,10 +35,31 @@ namespace RestaurantListingAPI.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetDishes()
+        public async Task<IActionResult> GetDishes([FromQuery] PagingParams pagingParams)
         {
-            var dishes = await _unitOfWork.Dishes.GetAll(orderBy: o => o.OrderByDescending(d => d.Stars));
+            // No Paging
+            //var dishes = await _unitOfWork.Dishes.GetAll(orderBy: o => o.OrderByDescending(d => d.Stars));
+
+            // Basic Paging
+            //var dishes = await _unitOfWork.Dishes.GetAllPaginated(pagingParams, orderBy: o => o.OrderByDescending(d => d.Stars));
+            
+            // Improved Paging, using PageList
+            var dishes = await _unitOfWork.Dishes.GetAllPaginatedImproved(pagingParams, orderBy: o => o.OrderByDescending(d => d.Stars));
+
             var results = _mapper.Map<IList<DishDTO>>(dishes);
+
+            var metadata = new
+            {
+                dishes.TotalCount,
+                dishes.PageSize,
+                dishes.CurrentPage,
+                dishes.TotalPages,
+                dishes.HasNext,
+                dishes.HasPrevious
+            };
+            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
+            _logger.LogInformation($"successfully Returned paged dishes from Db");
+
             return Ok(results);
         }
 

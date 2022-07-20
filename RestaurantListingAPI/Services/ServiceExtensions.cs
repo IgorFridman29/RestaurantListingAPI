@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -102,6 +103,23 @@ namespace RestaurantListingAPI.Services
                         await context.Response.WriteAsync(error.ToString());
                     }
                 });
+            });
+        }
+
+        public static void AddVersioning(this IServiceCollection services)
+        {
+            services.AddApiVersioning(opt =>
+            {
+                // add a header in the http response that specified the used version
+                opt.ReportApiVersions = true;
+                // if nothing is specified used the default version
+                opt.AssumeDefaultVersionWhenUnspecified = true;
+                // this is the default version
+                opt.DefaultApiVersion = new ApiVersion(1, 0);
+
+
+                //add this line later when showing how to pass version in header
+                // opt.ApiVersionReader = new HeaderApiVersionReader("api-version");
             });
         }
     }

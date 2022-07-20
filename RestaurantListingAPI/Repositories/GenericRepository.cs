@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using RestaurantListingAPI.Data;
+using RestaurantListingAPI.Data.Helpers;
+using RestaurantListingAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +33,41 @@ namespace RestaurantListingAPI.Repositories
         public void DeleteRange(IEnumerable<T> entities)
         {
             _dbSet.RemoveRange(entities);
+        }
+
+        public async Task<IList<T>> GetAllPaginated(PagingParams pagingParams, Expression<Func<T, bool>> expression = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (expression != null)
+                query = query.Where(expression);
+            if (include != null)
+                query = include(query);
+            if (orderBy != null)
+                query = orderBy(query);
+
+
+
+            return await query
+                .Skip((pagingParams.PageNumber - 1) * pagingParams.PageSize)
+                .Take(pagingParams.PageSize)
+                .AsNoTracking().ToListAsync();
+        }
+
+        public async Task<PagedList<T>> GetAllPaginatedImproved(PagingParams pagingParams, Expression<Func<T, bool>> expression = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (expression != null)
+                query = query.Where(expression);
+            if (include != null)
+                query = include(query);
+            if (orderBy != null)
+                query = orderBy(query);
+
+
+            return await PagedList<T>.ToPagedListAsync(query, pagingParams.PageNumber, pagingParams.PageSize);
+
         }
 
         public async Task<T> Get(Expression<Func<T, bool>> expression = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)

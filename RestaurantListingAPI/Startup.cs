@@ -32,6 +32,9 @@ namespace RestaurantListingAPI
             },
             ServiceLifetime.Singleton);
 
+            services.AddMemoryCache();
+            services.AddResponseCaching();
+
             services.AddAuthentication();
 
             services.AddIdentityConfiguration();
@@ -57,12 +60,19 @@ namespace RestaurantListingAPI
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IAuthManager, AuthManager>();
 
+            services.AddSingleton<CachingProperties>();
+
             services.AddControllers().AddNewtonsoftJson(
                 op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            
+            services.AddVersioning();
+            
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "RestaurantListingAPI", Version = "v1" });
             });
+
+            services.AddVersioning();
 
             services.AddTransient<ITransientService, OperationService>();
             services.AddScoped<IScopedService, OperationService>();
@@ -85,6 +95,10 @@ namespace RestaurantListingAPI
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors();
+
+            app.UseResponseCaching();
 
             app.UseAuthentication();
 
